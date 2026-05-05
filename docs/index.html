@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenGenie AI Stack — Self-Hosted AI Infrastructure</title>
+  <meta name="description" content="A modular, self-hosted AI infrastructure framework for AMD, NVIDIA, and ARM64 hardware. Deploy LLM inference, RAG pipeline, workflow automation, and observability on your own server." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0F172A;
+      --surface:  #1E293B;
+      --border:   #475569;
+      --fg:       #F8FAFC;
+      --muted:    #94A3B8;
+      --accent:   #22C55E;
+      --accent-dim: #16A34A;
+      --radius:   8px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 60px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--fg);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-logo span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover { color: var(--fg); }
+
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 16px;
+      background: var(--accent);
+      color: #0F172A !important;
+      border-radius: var(--radius);
+      font-weight: 600 !important;
+      font-size: 14px !important;
+      transition: background 0.15s, transform 0.1s !important;
+    }
+
+    .nav-cta:hover { background: var(--accent-dim) !important; transform: translateY(-1px); color: #0F172A !important; }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 100px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #hero::before {
+      content: '';
+      position: absolute;
+      top: -200px; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border: 1px solid rgba(34,197,94,0.35);
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent);
+      background: rgba(34,197,94,0.08);
+      margin-bottom: 28px;
+      letter-spacing: 0.03em;
+    }
+
+    h1 {
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+      text-shadow: 0 0 60px rgba(34,197,94,0.15);
+    }
+
+    h1 .highlight {
+      color: var(--accent);
+      text-shadow: 0 0 20px rgba(34,197,94,0.4);
+    }
+
+    .hero-desc {
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--muted);
+      max-width: 640px;
+      margin: 0 auto 40px;
+      font-weight: 400;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 64px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: var(--accent);
+      color: #0F172A;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 15px;
+      text-decoration: none;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 0 20px rgba(34,197,94,0.25);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-dim);
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(34,197,94,0.4);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: transparent;
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-weight: 500;
+      font-size: 15px;
+      text-decoration: none;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      background: rgba(34,197,94,0.06);
+      transform: translateY(-2px);
+    }
+
+    .gpu-badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .gpu-tag {
+      padding: 6px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    /* ── SECTIONS SHARED ── */
+    section { padding: 80px 24px; }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: clamp(26px, 4vw, 40px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    .section-desc {
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 560px;
+      line-height: 1.75;
+    }
+
+    /* ── FEATURES ── */
+    #features { border-top: 1px solid var(--border); }
+
+    .features-header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .features-header .section-desc { margin: 0 auto; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(34,197,94,0.4);
+      transform: translateY(-3px);
+    }
+
+    .feature-icon {
+      width: 44px; height: 44px;
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      font-size: 20px;
+    }
+
+    .feature-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ── PHASES ── */
+    #phases { background: rgba(30,41,59,0.3); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+    .phases-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    .phases-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .phase-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: default;
+      transition: background 0.15s;
+    }
+
+    .phase-row:hover { background: rgba(34,197,94,0.06); }
+
+    .phase-num {
+      width: 32px; height: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .phase-info { flex: 1; }
+    .phase-info strong { display: block; font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .phase-info span { font-size: 12px; color: var(--muted); }
+
+    /* ── PORTS ── */
+    .ports-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .ports-table thead th {
+      text-align: left;
+      padding: 10px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ports-table tbody tr {
+      border-bottom: 1px solid rgba(71,85,105,0.4);
+      transition: background 0.12s;
+    }
+
+    .ports-table tbody tr:hover { background: rgba(34,197,94,0.04); }
+
+    .ports-table tbody td {
+      padding: 11px 16px;
+      color: var(--fg);
+    }
+
+    .ports-table tbody td:last-child {
+      color: var(--accent);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── QUICKSTART ── */
+    #quickstart { border-top: 1px solid var(--border); }
+
+    .quickstart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    .steps { display: flex; flex-direction: column; gap: 20px; }
+
+    .step {
+      display: flex;
+      gap: 16px;
+    }
+
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #0F172A;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .step-body strong { display: block; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .step-body p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    .code-block {
+      background: #0D1117;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: rgba(30,41,59,0.6);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .code-dots { display: flex; gap: 6px; }
+    .code-dots span {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .dot-r { background: #FF5F57; }
+    .dot-y { background: #FFBD2E; }
+    .dot-g { background: #28CA41; }
+
+    .code-block pre {
+      padding: 20px;
+      font-size: 13px;
+      font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+      line-height: 1.7;
+      color: #E2E8F0;
+      overflow-x: auto;
+    }
+
+    .code-block pre .c { color: #64748B; }
+    .code-block pre .k { color: var(--accent); }
+    .code-block pre .s { color: #93C5FD; }
+
+    /* ── CTA ── */
+    #cta {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      background: linear-gradient(180deg, transparent 0%, rgba(34,197,94,0.04) 100%);
+    }
+
+    #cta .section-title { margin-bottom: 12px; }
+
+    #cta .section-desc {
+      margin: 0 auto 36px;
+    }
+
+    .cta-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 48px;
+    }
+
+    .social-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .social-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .social-badge:hover { border-color: var(--accent); color: var(--fg); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 24px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── DIVIDER ── */
+    .divider {
+      width: 48px; height: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+      margin: 20px 0;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 0 16px; }
+      .nav-links { display: none; }
+
+      .phases-layout,
+      .quickstart-grid { grid-template-columns: 1fr; gap: 32px; }
+
+      section { padding: 56px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#hero" class="nav-logo">Open<span>Genie</span></a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#phases">Architecture</a></li>
+    <li><a href="#quickstart">Quick Start</a></li>
+    <li><a href="https://github.com/TigerAI-Taiwan/OpenGenie-AI-Stack" class="nav-cta" target="_blank" rel="noopener">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+      GitHub
+    </a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="badge">
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+    Open Source · MIT License
+  </div>
+  <h1>
+    Self-Hosted AI Stack<br />
+    <span class="highlight">Ready in Minutes</span>
+  </h1>
+  <p class="hero-desc">
+    A modular, production-grade AI infrastructure framework for AMD, NVIDIA, and ARM64 hardware.
+    LLM inference · RAG pipeline · Workflow automation · Full observability.
+  </p>
+  <div class="hero-actions">
+    <a href="https://github.com/TigerAI-Taiwan/OpenGenie-AI-Stack" class="btn-primary" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+      View on GitHub
+    </a>
+    <a href="#quickstart" class="btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Quick Start
+    </a>
+  </div>
+  <div class="gpu-badges">
+    <span class="gpu-tag">AMD ROCm</span>
+    <span class="gpu-tag">NVIDIA CUDA</span>
+    <span class="gpu-tag">ARM64 / Apple Silicon</span>
+    <span class="gpu-tag">Ubuntu 22.04 / 24.04</span>
+    <span class="gpu-tag">Docker Compose</span>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="features-header">
+      <span class="section-label">Core Features</span>
+      <h2 class="section-title">Everything you need,<br />nothing you don't</h2>
+      <p class="section-desc">Each component is independently deployable. Start with LLM inference, add RAG when ready, bolt on observability later.</p>
+    </div>
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <div class="feature-icon">🖥️</div>
+        <h3>Multi-GPU Support</h3>
+        <p>AMD ROCm, NVIDIA CUDA, and ARM64 stacks included. Same 12-phase workflow across all hardware targets.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>LLM Inference</h3>
+        <p>Ollama + OpenWebUI with always-on VRAM optimization. Lemonade native engine for AMD high-performance inference.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📚</div>
+        <h3>RAG Pipeline</h3>
+        <p>Qdrant vector database, Docling document processor, and Mosquitto MQTT broker — fully wired and ready.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Workflow Automation</h3>
+        <p>n8n in queue mode with Redis and distributed workers. Enterprise-grade orchestration on your own hardware.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Full Observability</h3>
+        <p>Grafana + Prometheus + Loki + cAdvisor. DCGM Exporter for GPU telemetry and SLA dashboards out of the box.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🔧</div>
+        <h3>Auto Hardware Tuning</h3>
+        <p>HWI Advisor auto-detects your CPU and GPU, then writes an optimized tuning profile before first deploy.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">💾</div>
+        <h3>One-Click Backup</h3>
+        <p>Timestamped backup and restore for all persistent data. VRAM purge included. No scripting required.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🏗️</div>
+        <h3>12-Phase Methodology</h3>
+        <p>Structured, independently deployable modules — from driver setup to lifecycle management. Deploy what you need, skip the rest.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="phases">
+  <div class="container">
+    <div class="phases-layout">
+      <div>
+        <span class="section-label">Architecture</span>
+        <h2 class="section-title">12-Phase deployment</h2>
+        <div class="divider"></div>
+        <p class="section-desc">Each phase is a self-contained Docker Compose module with its own <code style="font-size:13px;background:var(--surface);padding:2px 6px;border-radius:4px;color:var(--accent)">deploy.sh</code>. Roll forward one layer at a time, or deploy everything in a single command.</p>
+      </div>
+      <div class="phases-list">
+        <div class="phase-row">
+          <div class="phase-num">00</div>
+          <div class="phase-info"><strong>HWI Advisor</strong><span>Auto hardware calibration &amp; tuning profile</span></div>
+        </div>
+        <div class="phase-row">
+          <div class="phase-num">01</div>
+          <div class="phase-info"><strong>Infrastructure</strong><span>Portainer, WebSSH</span></div>
+        </div>
+        <div class="phase-row">
+          <div class="phase-num">02</div>
+          <div class="phase-info"><strong>Database</strong><span>PostgreSQL 17, pgAdmin 4</span></div>
+        </div>
+        <div class="phase-row">
+          <div class="phase-num">03</div>
+          <div class="phase-info"><strong>AI Interface</strong><span>Ollama, OpenWebUI, Redis</span></div>
+        </div>
+        <div class="phase-row">
+          <div class="phase-num">04</div>
+          <div class="phase-info"><strong>Automation</strong><span>n8n queue mode + workers</span></div>
+        </div>
+        <div class="phase-row">
+          <div class="phase-num">05</div>
+          <div class="phase-info"><strong>RAG Stack</strong><span>Qdrant, Docling, Mosquitto</span></div>
+        </div>
+        <div class="phase-row">
+          <div class="phase-num">06</div>
+          <div class="phase-info"><strong>AI Core Engine</strong><span>Lemonade inference engine</span></div>
+        </div>
+        <div class="phase-row">
+          <div class="phase-num">07</div>
+          <div class="phase-info"><strong>Validation</strong><span>Health checks, benchmark scripts</span></div>
+        </div>
+        <div class="phase-row">
+          <div class="phase-num">08</div>
+          <div class="phase-info"><strong>Backup &amp; Recovery</strong><span>1-click backup, restore, VRAM purge</span></div>
+        </div>
+        <div class="phase-row">
+          <div class="phase-num">09</div>
+          <div class="phase-info"><strong>Monitoring &amp; Alerts</strong><span>tiger-monitor, MQTT alerting</span></div>
+        </div>
+        <div class="phase-row">
+          <div class="phase-num">10</div>
+          <div class="phase-info"><strong>Observability</strong><span>Grafana, Prometheus, Loki, cAdvisor</span></div>
+        </div>
+        <div class="phase-row">
+          <div class="phase-num">11</div>
+          <div class="phase-info"><strong>Lifecycle</strong><span>What's Up Docker (WUD)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Port table -->
+    <div style="margin-top:56px">
+      <h3 style="font-size:18px;font-weight:600;margin-bottom:16px;letter-spacing:-0.01em;">Default Service Ports</h3>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+        <table class="ports-table">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Description</th>
+              <th>Port</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>OpenWebUI</td><td>LLM chat interface</td><td>8080</td></tr>
+            <tr><td>n8n</td><td>Workflow automation</td><td>5678</td></tr>
+            <tr><td>Grafana</td><td>Observability dashboard</td><td>3000</td></tr>
+            <tr><td>Portainer</td><td>Container management</td><td>9000</td></tr>
+            <tr><td>pgAdmin</td><td>Database admin UI</td><td>8000</td></tr>
+            <tr><td>Qdrant</td><td>Vector DB REST API</td><td>6333</td></tr>
+            <tr><td>Ollama</td><td>Inference API</td><td>11434</td></tr>
+            <tr><td>WUD</td><td>Container update manager</td><td>3838</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUICKSTART -->
+<section id="quickstart">
+  <div class="container">
+    <div class="quickstart-grid">
+      <div>
+        <span class="section-label">Quick Start</span>
+        <h2 class="section-title">Up and running<br />in five steps</h2>
+        <div class="divider"></div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <strong>Clone the repo</strong>
+              <p>Clone and pick your hardware stack — AMD, NVIDIA, or ARM64.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <strong>Configure credentials</strong>
+              <p>Copy <code style="font-size:12px;background:var(--surface);padding:2px 5px;border-radius:4px">.env.example</code> → <code style="font-size:12px;background:var(--surface);padding:2px 5px;border-radius:4px">.env</code> and replace all <code style="font-size:12px;background:var(--surface);padding:2px 5px;border-radius:4px">CHANGE_ME</code> values.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <strong>Run HWI Advisor</strong>
+              <p>Auto-detects hardware and writes an optimal tuning profile.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <strong>Deploy</strong>
+              <p>Full stack in one command, or deploy individual phases as needed.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">5</div>
+            <div class="step-body">
+              <strong>Verify</strong>
+              <p>Run the automated health check and benchmark suite.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots">
+              <span class="dot-r"></span>
+              <span class="dot-y"></span>
+              <span class="dot-g"></span>
+            </div>
+            <span>bash</span>
+          </div>
+          <pre><span class="c"># 1. Clone</span>
+<span class="k">git</span> clone https://github.com/TigerAI-Taiwan/OpenGenie-AI-Stack.git
+<span class="k">cd</span> OpenGenie-AI-Stack
+
+<span class="c"># 2. Pick your stack</span>
+<span class="k">cd</span> deployments/amd-compose-stack
+<span class="c">#        or: nvidia-compose-stack / arm64-compose-stack</span>
+
+<span class="c"># 3. Configure</span>
+<span class="k">cp</span> .env.example .env
+<span class="k">nano</span> .env  <span class="c"># replace CHANGE_ME values</span>
+
+<span class="c"># 4. Hardware calibration (recommended)</span>
+<span class="k">sudo</span> bash 00-pre-flight-advisor/tiger-advisor.sh
+
+<span class="c"># 5. Deploy everything</span>
+<span class="k">sudo</span> bash master-deploy.sh all
+
+<span class="c"># 6. Verify</span>
+<span class="k">sudo</span> bash master-deploy.sh test</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="container">
+    <span class="section-label">Get Started</span>
+    <h2 class="section-title">Your private AI stack,<br />fully under your control</h2>
+    <p class="section-desc">No cloud lock-in. No usage fees. Deploy on your hardware, keep your data on-premise.</p>
+    <div class="cta-actions">
+      <a href="https://github.com/TigerAI-Taiwan/OpenGenie-AI-Stack" class="btn-primary" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        Star on GitHub
+      </a>
+      <a href="https://github.com/TigerAI-Taiwan/OpenGenie-AI-Stack/blob/main/CONTRIBUTING.md" class="btn-secondary" target="_blank" rel="noopener">
+        Contributing Guide
+      </a>
+    </div>
+    <div class="social-row">
+      <a href="https://github.com/TigerAI-Taiwan/OpenGenie-AI-Stack/blob/main/README.md" class="social-badge" target="_blank" rel="noopener">📄 Documentation</a>
+      <a href="https://github.com/TigerAI-Taiwan/OpenGenie-AI-Stack/issues" class="social-badge" target="_blank" rel="noopener">🐛 Issues</a>
+      <a href="https://github.com/TigerAI-Taiwan/OpenGenie-AI-Stack/blob/main/LICENSE" class="social-badge" target="_blank" rel="noopener">⚖️ MIT License</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>
+    MIT © 2026 <a href="https://github.com/TigerAI-Taiwan" target="_blank" rel="noopener">TigerAI-Taiwan</a>
+    &nbsp;·&nbsp;
+    <a href="https://github.com/TigerAI-Taiwan/OpenGenie-AI-Stack" target="_blank" rel="noopener">GitHub</a>
+    &nbsp;·&nbsp;
+    <a href="https://github.com/TigerAI-Taiwan/OpenGenie-AI-Stack/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">Contributing</a>
+  </p>
+</footer>
+
+</body>
+</html>
