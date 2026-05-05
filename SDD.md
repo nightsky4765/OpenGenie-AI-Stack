@@ -1,101 +1,126 @@
-# Software Design Document (SDD) - TigerAI Open-AI-Stack
+# Software Design Document — OpenGenie AI Stack
 
-## 📝 Document Metadata
-*   **Project Name:** Open-AI-Stack (Enterprise & SaaS Edition)
-*   **Tier:** P1 (Mission Critical Infrastructure)
-*   **Version:** v1.1.0 (Commercial Ready)
-*   **Author:** TigerAI Engineering
-*   **Methodology:** [TigerAI Enterprise Stack Methodology](.agent/skills/tigerai-p1-stack/SKILL.md)
-*   **Last Updated:** 2026-02-02
-
----
-
-## 1. Executive Summary & Commercial Vision
-The TigerAI Open-AI-Stack is a P1-tier (99.9% availability target) private AI infrastructure designed for Edge Computing and SaaS-as-a-Product deployment. 
-*   **Base + Plugin Model**: A rock-solid open-source foundation (Phases 00-11) supplemented by a proprietary, license-controlled Commercial Gateway (Phase 12).
-*   **Hybrid Connectivity**: Optimized for air-gapped or intermittently connected environments using OTA Time-Sync and Offline Token validation.
+| Field | Value |
+|-------|-------|
+| Project | OpenGenie AI Stack |
+| Version | v2.0.0 |
+| Author | TigerAI Engineering |
+| Last Updated | 2026-05-05 |
+| Target OS | Ubuntu 22.04 / 24.04 LTS |
+| Deployment | Docker Compose (standalone) |
 
 ---
 
-## 2. Hardware Intelligence (HWI) Advisor
-Calibration is mandatory before deployment via `./00-pre-flight-advisor/tiger-advisor.sh` within each stack directory:
-*   **Architecture Agility**: Automatically detects X86_64, ARM64 (Apple Silicon/Blackwell), or AMD ROCm.
-*   **Conservative (Default)**: 50% CPU threads, 2 n8n workers. Stability priority.
-*   **Balanced**: 75% CPU threads, 5 n8n workers. Optimized for multi-user workloads.
-*   **Optimal**: 100% CPU threads, 10 n8n workers. Max throughput for heavy RAG/OCR pipelines.
+## 1. Overview
+
+OpenGenie AI Stack is a modular, self-hosted AI infrastructure framework for AMD, NVIDIA, and ARM64 hardware. It transforms a standard GPU server into a production-ready AI appliance through a structured 12-phase deployment methodology.
+
+Each phase is independently deployable and contains its own `deploy.sh` and `docker-compose.yaml`. Stacks are located under `deployments/`:
+
+```
+deployments/
+├── amd-compose-stack/      # AMD ROCm GPU
+├── nvidia-compose-stack/   # NVIDIA CUDA GPU
+└── arm64-compose-stack/    # ARM64 (Apple Silicon / Ampere / Jetson)
+```
 
 ---
 
-## 3. 12-Phase Architecture (Modular Decomposition)
-| Phase | Layer | Name | Core Components | Commercial Value |
-| :--- | :--- | :--- | :--- | :--- |
-| **00** | Advisor | HWI Advisor | ./00-pre-flight-advisor/ | Initial hardware calibration and profile generation. |
-| **00** | System | Foundation | ./00-system-setup-*/ | Architecture-specific driver and foundation setup. |
-| **01** | Infra | Infrastructure | ./01-infra-*/ | Secure orchestration visibility (Portainer/WebSSH). |
-| **02** | DB | Database | ./02-database-*/ | Hardened PostgreSQL 17 audit persistence. |
-| **03** | Chat | AI Interface | ./03-ai-interface-*/ | High-speed interactive LLM experience. |
-| **04** | Auto | Automation | ./04-automation-*/ | Enterprise workflow engine (n8n). |
-| **05** | RAG | Knowledge Base | ./05-rag-stack-*/ | Vector storage and document processing. |
-| **06** | Core | AI Core Engine | ./06-ai-core-*/ | Native inference engines. |
-| **07** | Test | Validation | ./07-validation-stack/ | Automated QA and delivery verification. |
-| **08** | Backup | Disaster Recovery| ./08-backup-recovery/ | 1-Click backup and timestamped restore. |
-| **09** | Alert | Proactive Mon | ./09-monitoring-alerting/ | MQTT-based alarm escalation and notification. |
-| **10** | Ops | Observability | ./10-observability-*/ | GPU telemetry and SLA performance dashboards. |
-| **11** | Life | Lifecycle | ./11-lifecycle-wud/ | Controlled container updates and versioning. |
-| **12** | SaaS | Commercial Gwy | ./12-commercial-*/ | **SaaS connection, license management & OTA sync.** |
+## 2. 12-Phase Architecture
+
+| Phase | Layer | Name | Core Components |
+|:------|:------|:-----|:----------------|
+| **00** | Advisor | HWI Advisor | `tiger-advisor.sh` — hardware calibration, auto-tuning profile generation |
+| **00** | System | Foundation | Architecture-specific driver setup (ROCm / CUDA / ARM64) |
+| **01** | Infra | Infrastructure | Portainer, WebSSH — container management and remote access |
+| **02** | DB | Database | PostgreSQL 17, pgAdmin 4 — hardened multi-schema persistence |
+| **03** | Chat | AI Interface | Ollama, OpenWebUI (HA), Redis — interactive LLM experience |
+| **04** | Auto | Automation | n8n (main + workers, queue mode) — enterprise workflow engine |
+| **05** | RAG | Knowledge Base | Qdrant, Docling, Mosquitto — vector storage and document processing |
+| **06** | Core | AI Core Engine | Lemonade — native high-performance inference engine |
+| **07** | Test | Validation | `check-health.sh`, `benchmark-tps.sh` — automated QA and smoke tests |
+| **08** | Backup | Disaster Recovery | `backup-tigerai.sh`, `restore-tigerai.sh` — 1-click backup and restore |
+| **09** | Alert | Monitoring | `tiger-monitor.sh`, MQTT alert workflows — proactive health alerting |
+| **10** | Ops | Observability | Grafana, Prometheus, Loki, cAdvisor, DCGM — GPU telemetry and SLA dashboards |
+| **11** | Life | Lifecycle | What's Up Docker (WUD) — controlled container update management |
+| **12** | SaaS | Commercial Gateway | FastAPI bridge — OTA sync and license management (optional) |
+| **13** | Portal | Landing Portal | Landing page with system status and service links |
 
 ---
 
-## 4. Service Port Matrix
-| Layer | Service | Host Port | Commercial Exposure |
-| :--- | :--- | :--- | :--- |
-| 00 | Node-RED (Native) | **1880** | Internal Admin (Stealth) |
-| 12 | Commercial Gateway | **8000** | **Public/Customer API Access Point** |
-| 03 | OpenWebUI | **8080** | Internal Interactive UI |
-| 10 | Grafana | **3000** | Admin Performance Dashboard |
-| 11 | WUD (Lifecycle) | **3838** | Admin Update Manager |
-| 01 | Portainer | **9000** | Admin Container Manager |
+## 3. Service Port Matrix
+
+| Phase | Service | Default Port | Notes |
+|:------|:--------|:------------:|:------|
+| 00 | Node-RED (native) | 1880 | Admin automation agent, native install |
+| 01 | Portainer | 9000 | Container management UI |
+| 01 | WebSSH | 8888 | Browser-based terminal |
+| 02 | PostgreSQL | 5432 | Internal only (not exposed to host) |
+| 02 | pgAdmin | 8000 | DB admin UI |
+| 03 | OpenWebUI | 8080 | LLM chat interface |
+| 03 | Ollama | 11434 | Inference API (localhost only) |
+| 04 | n8n | 5678 | Workflow automation UI |
+| 05 | Qdrant | 6333 | Vector DB REST API |
+| 05 | Docling | 5001 | Document processing API |
+| 05 | Mosquitto (MQTT) | 443 | IoT/monitoring message broker |
+| 10 | Grafana | 3000 | Observability dashboard |
+| 11 | WUD | 3838 | Container update manager |
+| 12 | Commercial Gateway | 5055 | Optional SaaS API bridge |
+| 13 | Landing Portal | 80 / 443 | Public-facing entry point |
 
 ---
 
-## 5. Commercial OTA & License Management
-### A. Offline Time Synchronization
-Since many deployment units are air-gapped, standard NTP is unreliable. 
-*   **Mechanism**: The `ota-sync.sh` agent extracts high-precision timestamps from signed OTA commands and executes `hwclock` synchronization.
-*   **Impact**: Ensures subscription expiry logic (TTL) remains accurate without internet access.
+## 4. Database Architecture
 
-### B. The Kill-Switch (License Enforcement)
-*   **Control Agent**: Native Node-RED listens to authorized MQTT signals.
-*   **Enforcement**: On license expiry, Node-RED executes `docker stop system-api-bridge`.
-*   **Graceful Degradation**: Foundation layers (Ollama/n8n) remain available for basic open-source use, but proprietary "Product Features" (Phase 12 API) are locked.
+**PostgreSQL 17** uses a single database (`tigerai`) with schema isolation:
 
----
+| Schema | Owner | Purpose |
+|--------|-------|---------|
+| `n8n` | adm | n8n workflow data, executions, credentials |
+| `openwebui` | adm | User data, chat history, model settings |
+| `public` | adm | Shared/default schema |
 
-## 6. Enterprise Reliability (HA & Maintenance)
-### A. High Availability (HA Ready)
-*   **Keepalived Support**: All endpoint checks utilize the `TARGET_HOST` variable for VIP fail-over.
-*   **Stateless Scaling**: AI Inference layers (03, 06, 12) are stateless, supporting Nginx/F5 load balancing.
-*   **Persistent Data**: DB layers are pre-configured for Primary-Replica streaming (WAL level: logical).
-
-### B. Automated Maintenance
-*   **04:00 AM**: Version check (WUD).
-*   **05:00 AM**: VRAM Purge (Phase 08) ensures 100% GPU memory clearing and engine refresh for peak morning performance.
+Schema initialization is automated by each module's `deploy.sh`.
 
 ---
 
-## 7. ISO Standards Alignment (ISO 標準對齊)
-The TigerAI Open-AI-Stack architecture is designed to support enterprise-grade compliance audits:
+## 5. Redis Architecture
 
-### A. ISO/IEC 27001 (Information Security Management)
-*   **A.12 Operations Security**: Automated backups (Phase 08) and comprehensive monitoring (Phase 10).
-*   **A.13 Network Security**: Air-gapped readiness, Port Matrix isolation, and Docker Socket Proxy.
-*   **A.18 Compliance**: 100% data sovereignty; all processing remains within local infrastructure.
+Redis uses database-index isolation to prevent cross-service contamination:
 
-### B. ISO/IEC 42001 (Artificial Intelligence Management)
-*   **AI Life Cycle**: 12-Phase structured methodology from calibration to decommissioning.
-*   **Transparency**: Detailed SDD and audit logs in Phase 02 (PostgreSQL).
-*   **Risk Management**: Real-time GPU telemetry and performance warning thresholds.
+| DB Index | Service | Usage |
+|:--------:|---------|-------|
+| 0 | n8n | BullMQ job queue, worker coordination |
+| 1 | OpenWebUI | Session storage, task queue |
 
-### C. ISO/IEC 27701 (Privacy Information Management)
-*   **Data Residency**: Zero-cloud dependency ensures no PII (Personally Identifiable Information) leaves the premises.
-*   **Auditability**: Complete request/response logging capabilities for AI interactions.
+---
+
+## 6. Hardware Profiles (HWI Advisor)
+
+Run `./00-pre-flight-advisor/tiger-advisor.sh` before deploying. It auto-detects hardware and writes a tuning profile to `tiger-tuning.env`.
+
+| Profile | CPU Threads | n8n Workers | Use Case |
+|---------|:-----------:|:-----------:|---------|
+| Conservative | 50% | 2 | Stability-first, shared hosts |
+| Balanced | 75% | 5 | Multi-user production (default) |
+| Optimal | 100% | 10 | Dedicated AI servers, heavy RAG/OCR |
+
+---
+
+## 7. Network
+
+All services share a single Docker bridge network: `ai_stack_net`
+
+- Container-to-container DNS resolution via service name
+- Host access via `host.docker.internal`
+- External exposure only on explicitly mapped ports (see Port Matrix)
+
+---
+
+## 8. Per-Stack References
+
+For stack-specific details (driver versions, GPU runtime config, platform notes):
+
+- AMD: `deployments/amd-compose-stack/README.md`
+- NVIDIA: `deployments/nvidia-compose-stack/SDD.md`
+- ARM64: `deployments/arm64-compose-stack/SDD.md`

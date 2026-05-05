@@ -1,61 +1,163 @@
-# TigerAI Open-AI-Stack: Enterprise Private AI Infrastructure
+# OpenGenie AI Stack
 
-[**中文版本說明 (README_zh.md)**](./README_zh.md)
+**[正體中文](./README_zh.md) | [日本語](./README_ja.md) | [한국어](./README_ko.md)**
 
-![Project Tier](https://img.shields.io/badge/Tier-P1_Mission_Critical-red)
-![SaaS](https://img.shields.io/badge/Business-OTA_SaaS_Ready-blue)
-![GPU](https://img.shields.io/badge/Vendor-AMD_|_NVIDIA_|_ARM64-green)
+![License](https://img.shields.io/badge/License-MIT-green)
+![GPU](https://img.shields.io/badge/GPU-AMD_|_NVIDIA_|_ARM64-blue)
+![Platform](https://img.shields.io/badge/Platform-Ubuntu_22.04_%2F_24.04-orange)
+![Stack](https://img.shields.io/badge/Stack-Docker_Compose-2496ED)
 
-TigerAI Open-AI-Stack is a highly modular, professional-grade private AI deployment framework. It transforms standard hardware into a **SaaS-Ready AI Appliance**, supporting Over-The-Air (OTA) management, subscription-based licensing, and mission-critical reliability.
-
----
-
-## 🏗️ 12-Layer Methodology (12 層級方法論)
-Deployment is orchestrated through a 12-Phase structured methodology:
-
-1.  **HWI Advisor**: Pre-flight calibration & NVIDIA/AMD agility.
-2.  **Foundation**: Native **Stealth Admin Agent (Node-RED)** for OTA control.
-3.  **Infrastructure**: Orchestration visibility (Portainer/WebSSH).
-4.  **Data Core**: Hardened PostgreSQL 17 audit persistence.
-5.  **Interactive AI**: Real-time **Always-Ready** Chat (Ollama/WebUI).
-6.  **Automation**: Enterprise Workflow Queue (n8n).
-7.  **Knowledge Base**: RAG Pipeline & Vector Storage (Qdrant/Docling).
-8.  **Inference Core**: Native Performance Engines (Lemonade).
-9.  **Validation**: Automated QA & Health-check scripts.
-10. **DR & Backup**: 1-Click Backup & Maintenance (VRAM Purge).
-11. **SLA Monitoring**: Proactive Health Checks (Grafana/MQTT).
-12. **Commercial Gateway**: **Proprietary SaaS Bridge & OTA License Controller.**
+A modular, self-hosted AI infrastructure framework for AMD, NVIDIA, and ARM64 hardware. Deploy a full-stack private AI appliance — LLM inference, RAG pipeline, workflow automation, and observability — on your own hardware in minutes.
 
 ---
 
-## � Documentation Index (文件索引)
+## Features
 
-### 🎯 Marketing & Decision Making (產品與行銷)
-*   **[Executive One-Pager](./docs/marketing/Executive_One_Pager_v1.1.2.md)**: Ideal for CEO/GM to understand value quickly.
-*   **[Product Whitepaper v1.1.3](./docs/marketing/Whitepaper_v1.1.3.md)**: Detailed features, hardware matrix, and competitive edge.
-*   **[Architecture Topology](./docs/marketing/Architecture_Topology_v1.1.2.md)**: For IT/Security review of data flow and boundaries.
-
-### 💼 Commercial & Legal (商務與簽約)
-*   **[SOW v1.1 Template](./docs/commercial/SOW_v1.1_Template.md)**: Professional Statement of Work with clear boundaries.
-*   **[Appendix 02: OSS Compliance](./docs/commercial/Appendix_02_OSS_License_v1.1.md)**: Legal shield using "Customer Pull" delivery model.
-*   **[Third-Party Notices Template](./docs/commercial/THIRD_PARTY_NOTICES_TEMPLATE.md)**: Standard attribution template for open-source dependencies.
-
-### ⚙️ Technical Reference (技術總覽)
-*   **[Software Design Document (SDD)](./SDD.md)**: Port matrix, service mapping, and ISO standards alignment.
+- **Multi-GPU Support** — AMD ROCm, NVIDIA CUDA, ARM64 (Apple Silicon, Jetson, Ampere)
+- **12-Phase Methodology** — structured, independently deployable modules from driver setup to monitoring
+- **LLM Inference** — Ollama + OpenWebUI with always-ready VRAM optimization and Lemonade native engine
+- **RAG Pipeline** — Qdrant vector DB + Docling document processor + Mosquitto MQTT
+- **Workflow Automation** — n8n in queue mode with Redis and distributed workers
+- **Observability** — Grafana + Prometheus + Loki + cAdvisor + DCGM Exporter (GPU metrics)
+- **One-Click Backup** — timestamped backup and restore for all persistent data
+- **Auto Hardware Tuning** — HWI Advisor auto-detects hardware and generates optimal config
 
 ---
 
-### 🚀 快速部署路徑 (Deployment Paths)
-*   **[NVIDIA Stack](./deployments/nvidia-compose-stack/)**：適用於 NVIDIA GPU 環境（Ubuntu/Windows WSL）。
-*   **[AMD Stack](./deployments/amd-compose-stack/)**：適用於 AMD ROCm 環境。
-*   **[ARM64 Stack](./deployments/arm64-compose-stack/)**：適用於 Apple Silicon (Mac), NVIDIA Jetson, Ampere ARM Servers。
+## Quick Start
 
-## 🔧 Enterprise Features
-*   **Offline Time-Sync**: Correct hardware clock drift in air-gapped environments via signed OTA tokens.
-*   **License Kill-Switch**: Remotely lock proprietary API layers while keeping OSS layers accessible.
-*   **Dual-Vendor Agility**: Native support for both NVIDIA (CUDA) and AMD (ROCm).
-*   **Self-Healing**: Automated 5:00 AM VRAM purging ensures long-term stability.
+### Prerequisites
 
-## 🧑‍💻 Business & Engineering Contact
-**TigerAI Morris Lu** / Lead Architect  
-*Project Category: P1 Edge AI Appliance*
+- Ubuntu 22.04 / 24.04 LTS
+- Docker Engine + Docker Compose v2
+- GPU drivers installed (ROCm / CUDA / NVIDIA Container Toolkit)
+- `sudo` access
+
+### 1. Clone
+
+```bash
+git clone https://github.com/TigerAI-Taiwan/OpenGenie-AI-Stack.git
+cd OpenGenie-AI-Stack
+```
+
+### 2. Choose your stack
+
+| Hardware | Directory |
+|----------|-----------|
+| NVIDIA GPU | `deployments/nvidia-compose-stack/` |
+| AMD ROCm GPU | `deployments/amd-compose-stack/` |
+| ARM64 (Apple Silicon / Jetson / Ampere) | `deployments/arm64-compose-stack/` |
+
+```bash
+cd deployments/amd-compose-stack   # or nvidia / arm64
+```
+
+### 3. Configure
+
+```bash
+cp .env.example .env
+# Edit .env — replace all CHANGE_ME values with your own credentials
+nano .env
+```
+
+### 4. Hardware calibration (recommended)
+
+```bash
+sudo bash 00-pre-flight-advisor/tiger-advisor.sh
+```
+
+This auto-detects your CPU/GPU and writes a tuning profile to `tiger-tuning.env`.
+
+### 5. Deploy
+
+```bash
+# Full deployment (all phases)
+sudo bash master-deploy.sh all
+
+# Or deploy individual phases
+sudo bash 02-database-postgres-pgadmin/deploy.sh
+sudo bash 03-ai-interface-ollama-openwebui-redis/deploy.sh
+```
+
+### 6. Verify
+
+```bash
+sudo bash master-deploy.sh test
+```
+
+---
+
+## 12-Phase Architecture
+
+| Phase | Layer | Components |
+|:-----:|-------|------------|
+| 00 | HWI Advisor | Auto hardware calibration, tuning profile |
+| 00 | Foundation | Driver setup, Docker, Node-RED |
+| 01 | Infrastructure | Portainer, WebSSH |
+| 02 | Database | PostgreSQL 17, pgAdmin 4 |
+| 03 | AI Interface | Ollama, OpenWebUI, Redis |
+| 04 | Automation | n8n (queue mode + workers) |
+| 05 | RAG Stack | Qdrant, Docling, Mosquitto |
+| 06 | AI Core Engine | Lemonade inference engine |
+| 07 | Validation | Health checks, benchmark scripts |
+| 08 | Backup & Recovery | 1-click backup, restore, VRAM purge |
+| 09 | Monitoring & Alerts | tiger-monitor, MQTT alerting |
+| 10 | Observability | Grafana, Prometheus, Loki, cAdvisor |
+| 11 | Lifecycle | What's Up Docker (WUD) |
+
+---
+
+## Service Ports (Default)
+
+| Service | Port |
+|---------|:----:|
+| OpenWebUI | 8080 |
+| n8n | 5678 |
+| Grafana | 3000 |
+| Portainer | 9000 |
+| pgAdmin | 8000 |
+| Qdrant | 6333 |
+| Ollama | 11434 |
+| Lemonade | 8080 |
+| WUD | 3838 |
+
+---
+
+## Repository Structure
+
+```
+deployments/
+├── amd-compose-stack/          # AMD ROCm stack
+├── nvidia-compose-stack/       # NVIDIA CUDA stack
+└── arm64-compose-stack/        # ARM64 stack
+    ├── 00-pre-flight-advisor/
+    ├── 01-infra-webssh-portainer/
+    ├── 02-database-postgres-pgadmin/
+    ├── 03-ai-interface-ollama-openwebui-redis/
+    ├── 04-automation-n8n/
+    ├── 05-rag-stack-docling-qdrant-mosquitto/
+    ├── 06-ai-core-lemonade/
+    ├── 07-validation-stack/
+    ├── 08-backup-recovery/
+    ├── 09-monitoring-alerting/
+    ├── 10-observability-grafana/
+    ├── 11-lifecycle-wud/
+    ├── 12-commercial-gateway/
+    ├── 13-landing-portal/
+    ├── master-deploy.sh
+    └── .env.example
+```
+
+---
+
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for branch naming, commit format, and PR guidelines.
+
+Please use the [issue templates](.github/ISSUE_TEMPLATE/) to report bugs or request features.
+
+---
+
+## License
+
+MIT © 2026 [TigerAI-Taiwan](https://github.com/TigerAI-Taiwan)

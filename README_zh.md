@@ -1,85 +1,162 @@
-# TigerAI Open-AI-Stack：企業級私有 AI 基礎設施
+# OpenGenie AI Stack
 
-![專案分級](https://img.shields.io/badge/分級-P1_Mission_Critical-red)
-![商務狀態](https://img.shields.io/badge/商務-Commercial_Ready-blue)
-![支援硬體](https://img.shields.io/badge/供應鏈-NVIDIA_|_AMD_|_ARM64-green)
+**[English](./README.md) | 正體中文 | [日本語](./README_ja.md) | [한국어](./README_ko.md)**
 
-TigerAI Open-AI-Stack 是一套專為企業、邊緣運算 (Edge) 與高資安需求環境設計的 **AI-as-a-Product** 交付框架。本系統整合了從硬體感知道商業授權的全流程邏輯，旨在將分散的開源組件轉化為可規模交付、具備商業防禦力的私有化 AI 產品。
+![授權](https://img.shields.io/badge/授權-MIT-green)
+![GPU](https://img.shields.io/badge/GPU-AMD_|_NVIDIA_|_ARM64-blue)
+![平台](https://img.shields.io/badge/平台-Ubuntu_22.04_%2F_24.04-orange)
+![部署方式](https://img.shields.io/badge/部署-Docker_Compose-2496ED)
 
----
-
-## 🏗️ 核心架構：12 層級方法論 (12-Phase Methodology)
-
-本專案採用嚴格的層級解耦設計，確保系統的穩定性與擴充性：
-
-1.  **HWI 評估 (Phase 00)**：自動感知硬體體質並進行效能調優。
-2.  **系統底座 (Phase 00)**：驅動、Docker 及原生隱形管理特工 (Node-RED)。
-3.  **基礎建設 (Phase 01)**：容器編排與遠端管理介面。
-4.  **數據中心 (Phase 02)**：硬化後的 PostgreSQL 17 審計資料庫。
-5.  **互動介面 (Phase 03)**：秒回響應 (Always-Ready) 的 AI 聊天介面。
-6.  **自動化引擎 (Phase 04)**：企業級分散式任務佇列 (n8n Queue Mode)。
-7.  **知識庫管線 (Phase 05)**：RAG 向量檢索與文件解析 (Qdrant/Docling)。
-8.  **推論核心 (Phase 06)**：原生高效能推論引擎 (Lemonade)。
-9.  **驗證與 QA (Phase 07)**：自動化健康檢查與交付驗收腳本。
-10. **災備與維運 (Phase 08-09)**：一鍵備份還原與 MQTT 無人值守告警。
-11. **監控與生命週期 (Phase 10-11)**：GPU 實時效能監視與容器更新管理。
-12. **商業閘道 (Phase 12)**：**專有 API 橋接、離線授權與時間同步中心。**
+一套模組化、自主託管的 AI 基礎設施框架，支援 AMD、NVIDIA 與 ARM64 硬體。在自有伺服器上快速部署完整的私有 AI 系統，涵蓋 LLM 推論、RAG 知識庫、工作流自動化與可觀測性監控。
 
 ---
 
-## 📚 文件指南 (Documentation Index)
+## 核心特點
 
-專案包含完整的商務與技術文檔，存放於 `docs/` 目錄中：
-
-### 🎯 產品與行銷 (docs/marketing/)
-*   **[決策層一頁式 (Executive One-Pager)](./docs/marketing/Executive_One_Pager_v1.1.2.md)**：適合 CEO/GM 快速理解價值與決策。
-*   **[產品白皮書 v1.1.3 (Whitepaper)](./docs/marketing/Whitepaper_v1.1.3.md)**：詳盡的產品功能、硬體矩陣與商業競爭力分析。
-*   **[技術架構拓樸 (Architecture Topology)](./docs/marketing/Architecture_Topology_v1.1.2.md)**：IT 與資安審核專用，展示數據流與安全邊界。
-
-### 💼 商務與簽約 (docs/commercial/)
-*   **[工作說明書 v1.1 (SOW Template)](./docs/commercial/SOW_v1.1_Template.md)**：專業的專案交付範本，含責任分界與驗收標準。
-*   **[第三方授權合規附件 (Appendix 02)](./docs/commercial/Appendix_02_OSS_License_v1.1.md)**：法律防禦武器，透過 Customer Pull 模式規避授權風險。
-*   **[第三方軟體聲明模板 (Third-Party Notices)](./docs/commercial/THIRD_PARTY_NOTICES_TEMPLATE.md)**：標準的開源組件與授權標註模板。
-
-### 🛠️ 技術對帳單 (Root)
-*   **[軟體設計文件 (SDD.md)](./SDD.md)**：最完整的技術架構、端口矩陣與 ISO 對標說明。
+- **多 GPU 支援** — AMD ROCm、NVIDIA CUDA、ARM64（Apple Silicon、Jetson、Ampere）
+- **12 層級方法論** — 從驅動安裝到監控的結構化模組，每個 Phase 可獨立部署
+- **LLM 推論** — Ollama + OpenWebUI，顯存常駐優化 + Lemonade 原生推論引擎
+- **RAG 知識庫** — Qdrant 向量資料庫 + Docling 文件解析 + Mosquitto MQTT
+- **工作流自動化** — n8n Queue Mode，含 Redis 與分散式 Worker
+- **可觀測性監控** — Grafana + Prometheus + Loki + cAdvisor + DCGM Exporter（GPU 指標）
+- **一鍵備份還原** — 所有持久化資料的時間戳備份與還原
+- **硬體自動調優** — HWI Advisor 自動偵測硬體並產生最佳化設定檔
 
 ---
 
-## 🌟 核心商務特點
+## 快速開始
 
-*   **離線時間同步 (Offline Time-Sync)**：無網環境下透過簽章指令校時，確保授權不漂移。
-*   **授權優雅降級 (Kill-Switch)**：授權到期僅鎖定商業 API，保障底座開源資料可存取。
-*   **雙供應商敏捷 (Dual-Vendor)**：同時支援 NVIDIA 與 AMD，解除供應鏈綁定風險。
-*   **Always-Ready 體驗**：深度顯存最佳化，解決 AI 首字延遲痛點。
+### 前置條件
 
-### 🚀 快速部署路徑 (Deployment Paths)
-*   **[NVIDIA Stack](./deployments/nvidia-compose-stack/)**：適用於 NVIDIA GPU 環境（Ubuntu/Windows WSL）。
-*   **[AMD Stack](./deployments/amd-compose-stack/)**：適用於 AMD ROCm 環境。
-*   **[ARM64 Stack](./deployments/arm64-compose-stack/)**：適用於 Apple Silicon (Mac), NVIDIA Jetson, Ampere ARM 伺服器。
+- Ubuntu 22.04 / 24.04 LTS
+- Docker Engine + Docker Compose v2
+- 已安裝 GPU 驅動（ROCm / CUDA / NVIDIA Container Toolkit）
+- `sudo` 權限
+
+### 1. Clone 專案
+
+```bash
+git clone https://github.com/TigerAI-Taiwan/OpenGenie-AI-Stack.git
+cd OpenGenie-AI-Stack
+```
+
+### 2. 選擇對應的 Stack
+
+| 硬體 | 目錄 |
+|------|------|
+| NVIDIA GPU | `deployments/nvidia-compose-stack/` |
+| AMD ROCm GPU | `deployments/amd-compose-stack/` |
+| ARM64（Apple Silicon / Jetson / Ampere） | `deployments/arm64-compose-stack/` |
+
+```bash
+cd deployments/amd-compose-stack   # 或 nvidia / arm64
+```
+
+### 3. 設定環境變數
+
+```bash
+cp .env.example .env
+# 編輯 .env，將所有 CHANGE_ME 替換為實際值
+nano .env
+```
+
+### 4. 硬體校準（建議執行）
+
+```bash
+sudo bash 00-pre-flight-advisor/tiger-advisor.sh
+```
+
+自動偵測 CPU / GPU 規格，將最佳化調優設定寫入 `tiger-tuning.env`。
+
+### 5. 部署
+
+```bash
+# 全量部署（所有 Phase）
+sudo bash master-deploy.sh all
+
+# 或單獨部署特定 Phase
+sudo bash 02-database-postgres-pgadmin/deploy.sh
+sudo bash 03-ai-interface-ollama-openwebui-redis/deploy.sh
+```
+
+### 6. 驗收測試
+
+```bash
+sudo bash master-deploy.sh test
+```
 
 ---
 
-## ⚙️ 快速啟動 (Quick Start)
+## 12 層級架構
 
-1.  **環境初始化**：
-    進入對應的堆疊目錄 (NVIDIA/AMD)，執行硬體評估：
-    ```bash
-    sudo bash master-deploy.sh init
-    ```
-2.  **全量部署**：
-    ```bash
-    sudo bash master-deploy.sh all
-    ```
-3.  **交付驗收**：
-    ```bash
-    sudo bash master-deploy.sh test
-    ```
+| Phase | 層級 | 核心元件 |
+|:-----:|------|----------|
+| 00 | HWI 評估 | 硬體自動校準，產生調優設定檔 |
+| 00 | 系統底座 | 驅動安裝、Docker、Node-RED |
+| 01 | 基礎建設 | Portainer、WebSSH |
+| 02 | 資料庫 | PostgreSQL 17、pgAdmin 4 |
+| 03 | AI 介面 | Ollama、OpenWebUI、Redis |
+| 04 | 自動化 | n8n（Queue Mode + Workers） |
+| 05 | RAG 知識庫 | Qdrant、Docling、Mosquitto |
+| 06 | AI 核心引擎 | Lemonade 推論引擎 |
+| 07 | 驗收測試 | 健康檢查、效能基準腳本 |
+| 08 | 備份與還原 | 一鍵備份、還原、VRAM 清除 |
+| 09 | 監控告警 | tiger-monitor、MQTT 告警流程 |
+| 10 | 可觀測性 | Grafana、Prometheus、Loki、cAdvisor |
+| 11 | 生命週期 | What's Up Docker（WUD） |
 
 ---
 
-## 🧠 專業技能 (Global Skill)
-本專案的開發邏輯已封裝為 [TigerAI Enterprise Stack Methodology](.agent/skills/tigerai-p1-stack/SKILL.md)，確保未來的開發與擴充皆遵循 P1 等級的嚴謹標準。
+## 預設服務埠
 
-**TigerAI Engineering**
-*追求極致穩定的私有 AI 數位骨幹*
+| 服務 | 埠號 |
+|------|:----:|
+| OpenWebUI | 8080 |
+| n8n | 5678 |
+| Grafana | 3000 |
+| Portainer | 9000 |
+| pgAdmin | 8000 |
+| Qdrant | 6333 |
+| Ollama | 11434 |
+| WUD | 3838 |
+
+---
+
+## 目錄結構
+
+```
+deployments/
+├── amd-compose-stack/          # AMD ROCm Stack
+├── nvidia-compose-stack/       # NVIDIA CUDA Stack
+└── arm64-compose-stack/        # ARM64 Stack
+    ├── 00-pre-flight-advisor/
+    ├── 01-infra-webssh-portainer/
+    ├── 02-database-postgres-pgadmin/
+    ├── 03-ai-interface-ollama-openwebui-redis/
+    ├── 04-automation-n8n/
+    ├── 05-rag-stack-docling-qdrant-mosquitto/
+    ├── 06-ai-core-lemonade/
+    ├── 07-validation-stack/
+    ├── 08-backup-recovery/
+    ├── 09-monitoring-alerting/
+    ├── 10-observability-grafana/
+    ├── 11-lifecycle-wud/
+    ├── 12-commercial-gateway/
+    ├── 13-landing-portal/
+    ├── master-deploy.sh
+    └── .env.example
+```
+
+---
+
+## 貢獻指南
+
+歡迎提交 PR！詳見 [CONTRIBUTING.md](./CONTRIBUTING.md)，包含分支命名規則、Commit 格式與 PR 流程。
+
+Bug 回報與功能建議請使用 [Issue 範本](.github/ISSUE_TEMPLATE/)。
+
+---
+
+## 授權
+
+MIT © 2026 [TigerAI-Taiwan](https://github.com/TigerAI-Taiwan)

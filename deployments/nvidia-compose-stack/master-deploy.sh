@@ -31,7 +31,6 @@ DEPLOY_STEPS=(
     "08-backup-recovery"
     "10-observability-grafana"
     "11-lifecycle-wud"
-    "12-commercial-gateway"
 )
 
 VALIDATION_SCRIPT="./07-validation-stack/check-health.sh"
