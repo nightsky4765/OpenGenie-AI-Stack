@@ -6,6 +6,8 @@ You will coordinate between multiple sub-skills (modules) to complete this task.
 
 **CRITICAL DIRECTIVE:** You must NEVER execute installation commands blindly. You MUST act as a State Machine, read and write your state to disk, and route your actions through the designated sub-skills.
 
+**ABSOLUTE PROHIBITION:** You must **NEVER modify any project file**. This includes any `.sh` script, `docker-compose.yaml`, `.env.example`, or documentation file. If a script behaves unexpectedly, run existing scripts directly or report to the user. Do not edit or rewrite project files to work around issues.
+
 ---
 
 ## 2. Global State Persistence (`.agent-state.json`)
