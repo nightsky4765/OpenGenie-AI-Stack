@@ -67,7 +67,6 @@ The agent skills define the exact wake-up phrase to tell the user. For reference
 |---|---|
 | First reboot after `system` | `"resume deployment"` |
 | Unexpected session drop | `"resume deployment"` |
-| User finished editing `.env` | `"env configured, continue"` |
 | Deployment is running and user wants health check | `"check deployment health"` |
 | User wants a full clean reinstall | `"full purge and reinstall"` |
 | After purge + reboot (starting over from zero) | `"start fresh installation"` |
@@ -76,7 +75,32 @@ When you receive **"resume deployment"** or **"start fresh installation"**, your
 
 ---
 
-## 5. Sub-Skill Index
+## 5. Running Commands — Terminal Access via Antigravity
+
+> **You do NOT need to open a separate terminal app.**
+> Antigravity (the AI coding assistant powering this deployment) has a **built-in terminal** you can use to run all installation commands directly.
+
+### How to open the Antigravity terminal:
+
+1. In the **Antigravity** chat panel, look for the **Terminal** tab or icon (usually in the bottom panel of the IDE / assistant window).
+2. Click it to open an interactive shell session with full `sudo` support.
+3. Run any command provided by the agent directly there — no need to copy-paste into a separate app.
+
+### Why this matters:
+- Commands that require `sudo` (like driver installation) need an **interactive terminal** to accept your password.
+- Antigravity's built-in terminal provides this — the AI agent's "run command" tool cannot prompt for passwords.
+- This is the **recommended way** to execute all Phase 0 and Phase 1 installation steps.
+
+### Quick reference:
+| Situation | Action |
+|---|---|
+| Need to run `sudo bash install.sh` | Open Antigravity terminal → paste command |
+| Need to enter sudo password | Antigravity terminal handles it interactively |
+| Want the agent to monitor output | Paste results back into the chat |
+
+---
+
+## 6. Sub-Skill Index
 
 | File | Purpose |
 |---|---|

@@ -59,39 +59,63 @@ Combine these results with `.agent-state.json` to identify your exact state belo
 
 **Action:**
 1. Navigate to the stack directory (determined by `03-gpu-robustness.md`).
-2. **Configure environment secrets BEFORE any deployment commands:**
+2. **Collect and write environment secrets interactively:**
+
+   First, check if `.env` already exists:
    ```bash
-   # Check if .env already exists (idempotent)
    ls .env 2>/dev/null && echo "ENV_EXISTS" || echo "ENV_MISSING"
    ```
-   If `ENV_MISSING`:
+
+   If `ENV_MISSING`, copy the template:
    ```bash
    cp .env.example .env
    ```
-   > ⚠️ **nvidia-compose-stack does NOT have a root-level `.env.example`.** If you are deploying the NVIDIA stack, check `amd-compose-stack/.env.example` as a reference template, or look for `.env.example` files inside individual phase directories.
+   > ⚠️ **nvidia-compose-stack does NOT have a root-level `.env.example`.** Copy from `../amd-compose-stack/.env.example` as reference:
+   > ```bash
+   > cp ../amd-compose-stack/.env.example .env
+   > ```
 
-   After copying, open `.env` and replace every `CHANGE_ME` value with actual credentials:
+   Now scan for all fields that still need values:
    ```bash
    grep "CHANGE_ME" .env
    ```
-   **STOP and print this message to the user:**
+
+   **STOP. Ask the user each question below, one at a time. Wait for each answer before asking the next.**
 
    ---
-   🔑 **Before we can deploy, you need to set your passwords.**
-   
-   Please open the `.env` file (inside the stack directory) and replace every `CHANGE_ME` with a real value:
-   - `PG_PASS` — PostgreSQL password
-   - `PGADMIN_EMAIL` — Your email for pgAdmin login
-   - `PGADMIN_PASS` — pgAdmin password
-   - `N8N_SECRET` — Any random secret string
-   - `DB_POSTGRESDB_PASSWORD` — Same as `PG_PASS`
-   - `GRAFANA_PASS` — Grafana dashboard password
-   - `OWUI_SECRET_KEY` — Any random secret string
-   
-   When done, tell me: **"env configured, continue"**
+   🔑 **I need to set up your credentials before deployment. I'll ask you one by one.**
+
+   Please answer each question:
+
+   1. **PostgreSQL password** (`PG_PASS` and `DB_POSTGRESDB_PASSWORD`) — choose any strong password:
+   2. **pgAdmin login email** (`PGADMIN_EMAIL`) — the email you'll use to log into the database dashboard:
+   3. **pgAdmin password** (`PGADMIN_PASS`) — password for the pgAdmin dashboard:
+   4. **n8n secret key** (`N8N_SECRET`) — any random string (used to sign tokens, e.g. a UUID):
+   5. **Grafana password** (`GRAFANA_PASS`) — password for the monitoring dashboard:
+   6. **OpenWebUI secret key** (`OWUI_SECRET_KEY`) — any random string (e.g. a UUID):
+   7. **Lemonade API key** (`LEMONADE_API_KEY`) — if you have one, or type `skip` to leave blank:
+
+   *After the user answers all questions, write them all into `.env` at once using `sed`:*
    ---
 
-   **Wait for user confirmation before continuing.**
+   Once you have all answers, execute the following `sed` commands (fill in the actual values the user gave):
+   ```bash
+   # Replace each CHANGE_ME with the user's provided value
+   sed -i "s|^PG_PASS=CHANGE_ME|PG_PASS=<USER_VALUE>|" .env
+   sed -i "s|^PGADMIN_EMAIL=CHANGE_ME|PGADMIN_EMAIL=<USER_VALUE>|" .env
+   sed -i "s|^PGADMIN_PASS=CHANGE_ME|PGADMIN_PASS=<USER_VALUE>|" .env
+   sed -i "s|^N8N_SECRET=CHANGE_ME|N8N_SECRET=<USER_VALUE>|" .env
+   sed -i "s|^DB_POSTGRESDB_PASSWORD=CHANGE_ME|DB_POSTGRESDB_PASSWORD=<PG_PASS_VALUE>|" .env
+   sed -i "s|^GRAFANA_PASS=CHANGE_ME|GRAFANA_PASS=<USER_VALUE>|" .env
+   sed -i "s|^OWUI_SECRET_KEY=CHANGE_ME|OWUI_SECRET_KEY=<USER_VALUE>|" .env
+   sed -i "s|^LEMONADE_API_KEY=CHANGE_ME|LEMONADE_API_KEY=<USER_VALUE>|" .env
+   ```
+
+   After writing, verify no `CHANGE_ME` values remain:
+   ```bash
+   grep "CHANGE_ME" .env && echo "WARNING: unfilled values remain" || echo "✅ All credentials set"
+   ```
+   If any `CHANGE_ME` remains, ask the user for that specific value and write it with `sed` before continuing.
 
 3. Update state memory atomically:
    ```bash
