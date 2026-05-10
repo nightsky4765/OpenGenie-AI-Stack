@@ -3,3 +3,15 @@ tiger-tuning.env
 __pycache__/
 maintenance.log
 .claude/
+
+# Runtime state written by deployment agent / scripts
+.agent-state.json
+
+# Local credential backups (may contain secrets)
+.env.bak
+
+# Driver installer downloaded by 00-system-setup-rocm-docker/deploy.sh
+deployments/*/00-system-setup-*/*.deb
+
+# Python virtualenvs created on-host by RAG module deploy.sh
+.venv/
