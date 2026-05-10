@@ -96,7 +96,7 @@ When you receive **"resume deployment"** or **"start fresh installation"**, your
 ### Quick reference:
 | Situation | Action |
 |---|---|
-| Need to run `sudo bash install.sh` | Open Antigravity terminal → paste command |
+| Need to run `sudo bash deploy.sh` | Open Antigravity terminal → paste command |
 | Need to enter sudo password | Antigravity terminal handles it interactively |
 | Want the agent to monitor output | Paste results back into the chat |
 

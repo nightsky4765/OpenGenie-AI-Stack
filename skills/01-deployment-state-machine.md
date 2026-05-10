@@ -9,7 +9,7 @@ Because a reboot is required to activate GPU drivers, you will lose connection. 
 
 > 🚫 **ABSOLUTE PROHIBITION — Read this before doing anything:**
 > You must **NEVER modify any project file** under any circumstance. This includes:
-> - `master-deploy.sh`, `deploy.sh`, `install.sh`, any `.sh` script
+> - `master-deploy.sh`, `deploy.sh`, any `.sh` script
 > - `docker-compose.yaml`, `docker-compose.yml`
 > - `README.md`, `.env.example`, any documentation file
 >
@@ -149,12 +149,12 @@ Combine these results with `.agent-state.json` to identify your exact state belo
    **If `DOCKER_MISSING`:** The system setup was silently skipped (the log showed "Skipping Compose execution"). This means `master-deploy.sh system` did not find or run the install script. Run the setup script directly:
    ```bash
    cd 00-system-setup-rocm-docker   # or 00-system-setup-nvidia-docker for NVIDIA
-   sudo bash install.sh
+   sudo bash deploy.sh
    cd ..
    ```
-   > ⚠️ Do NOT modify `master-deploy.sh`. Run `install.sh` directly instead.
+   > ⚠️ Do NOT modify `master-deploy.sh`. Run `deploy.sh` directly instead.
 
-   After `install.sh` completes, verify Docker again:
+   After `deploy.sh` completes, verify Docker again:
    ```bash
    command -v docker > /dev/null 2>&1 && echo "DOCKER_INSTALLED" || echo "DOCKER_MISSING"
    ```
