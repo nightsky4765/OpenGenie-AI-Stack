@@ -9,6 +9,8 @@ maintenance.log
 
 # Local credential backups (may contain secrets)
 .env.bak
+.credentials.txt
+**/.credentials.txt
 
 # Driver installer downloaded by 00-system-setup-rocm-docker/deploy.sh
 deployments/*/00-system-setup-*/*.deb
