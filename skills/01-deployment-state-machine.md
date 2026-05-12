@@ -41,6 +41,17 @@ Because a reboot is required to activate GPU drivers, you will lose connection. 
 
 ---
 
+## 2.5 Whenever You Ask the User to Run a Command — MANDATORY
+
+The agent's "run command" tool cannot enter a sudo password. Any `sudo` step must be handed off to the user. **Every** such hand-off MUST include both of these reminders, up front:
+
+1. 🖥️ **Run it in Antigravity's built-in terminal** (bottom panel of the IDE). See `00-master-orchestrator.md` §5.
+2. ⚠️ **If `./script.sh` returns `Permission denied` or `command not found`, retry with `sudo bash script.sh`** — project scripts are tracked without the executable bit, and you must NOT `chmod` or otherwise modify them (per §1).
+
+Never emit a bare `sudo ...` line. Always show the full `cd ... && sudo bash <script> <args>` form and ask the user to paste output back before proceeding.
+
+---
+
 ## 3. State Probing (Execute this FIRST on every invocation)
 Whenever you start or resume, run the following diagnostic commands to determine your current state:
 

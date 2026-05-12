@@ -67,7 +67,24 @@ This happens when old drivers conflict, or the `nouveau` open-source driver is a
    ```
 3. Retry: `sudo ./master-deploy.sh app`
 
-## 5. Network Timeouts (Docker Pull Fails)
+## 5. Script Not Executable / `command not found` / `Permission denied`
+**Symptom:** Running `./master-deploy.sh system` (or any other `./xxx.sh` in the project) returns:
+- `bash: ./master-deploy.sh: Permission denied`, or
+- `sudo: ./master-deploy.sh: command not found`
+
+**Cause:** Project shell scripts are tracked in git **without the executable bit** (`-rw-rw-r--`). `./script.sh` therefore fails. You must NOT `chmod +x` them (modifying project files is prohibited per `01-deployment-state-machine.md` §1).
+
+**Recovery Strategy:**
+Invoke the script via the `bash` interpreter instead of relying on the exec bit:
+```bash
+cd /home/<user>/OpenGenie-AI-Stack/deployments/<stack-dir>
+sudo bash master-deploy.sh system     # or: init / app / clean
+```
+This works for every `.sh` in the project (`master-deploy.sh`, `deploy.sh`, `tiger-advisor.sh`, etc.).
+
+> 💡 **Preventive rule for the agent:** When emitting any user-facing sudo command, default to `sudo bash <script>` form from the start. See `01-deployment-state-machine.md` §2.5.
+
+## 6. Network Timeouts (Docker Pull Fails)
 **Symptom:** `error pulling image configuration: download failed after attempts=6`
 **Recovery Strategy:**
 1. Network hiccups happen. Simply execute the command again. Docker will resume the layer download from where it failed.
