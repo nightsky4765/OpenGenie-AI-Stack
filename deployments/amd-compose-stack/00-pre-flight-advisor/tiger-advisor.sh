@@ -77,7 +77,8 @@ case "$CHOICE" in
 esac
 
 # --- 3. Save Recommendations ---
-OUTPUT_FILE="../tiger-tuning.env"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OUTPUT_FILE="$SCRIPT_DIR/../tiger-tuning.env"
 cat <<EOF > "$OUTPUT_FILE"
 # TigerAI Auto-Generated Tuning Configuration
 # Generated: $(date)

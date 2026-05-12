@@ -236,11 +236,18 @@ Combine these results with `.agent-state.json` to identify your exact state belo
    - **RAM > 64GB** → type `3` (Optimal)
 
 5. After `init` completes, verify the tuning file was created successfully.
-   The path is relative to the stack directory you are currently in:
+
+   On current `main`, the advisor writes to `<stack>/tiger-tuning.env` and `master-deploy.sh` reads the same path — verify with:
    ```bash
-   cat ./00-pre-flight-advisor/tiger-tuning.env
+   cat ./tiger-tuning.env
    ```
+   Expected content (BALANCED profile example): `TIGER_OPTIMIZATION_PROFILE=BALANCED`, `TIGER_CPU_THREADS`, `TIGER_N8N_WORKERS`, `TIGER_OWUI_WORKERS`, `TIGER_LOG_MAX_SIZE`, plus detected hardware fields.
+
    If the file is missing or empty, `init` has failed. Consult `02-error-recovery-guide.md` and do NOT proceed to `app`.
+
+   > 🗂️ **Legacy-clone fallback:** Pre-fix clones had a path mismatch — `tiger-advisor.sh` wrote `../tiger-tuning.env` relative to the *caller's* `$PWD` (landing at `deployments/tiger-tuning.env`), and `amd/nvidia` `master-deploy.sh` read `./00-pre-flight-advisor/tiger-tuning.env`. Symptom: the line `[Master WARN] Detected [Conservative (Conservative)] mode` at the top of `init` output, and `master-deploy.sh app` silently using CONSERVATIVE despite the user picking another profile. Current `main` fixes both sides — advisor self-locates via `BASH_SOURCE` and writes to `<stack>/tiger-tuning.env`; all `master-deploy.sh` read the same path. If working from an older clone, the tuning file is a gitignored runtime output, so the legal recovery is `cp deployments/tiger-tuning.env <stack>/tiger-tuning.env` — do NOT edit the scripts; pull the fix instead.
+
+   > 💡 **AMD-stack note:** It is normal for `TIGER_GPU_TYPE=Unknown` / `TIGER_VRAM=0` on AMD hosts because `tiger-advisor.sh` relies on `rocm-smi`, which is not installed on the host (ROCm runs inside containers via `/dev/kfd` + `/dev/dri`). This does NOT block deployment.
 
 6. Update state and deploy the application stack:
    ```bash

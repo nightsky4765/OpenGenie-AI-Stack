@@ -50,7 +50,7 @@ usage() {
 }
 
 # Conservativedefaults
-TUNING_FILE="./00-pre-flight-advisor/tiger-tuning.env"
+TUNING_FILE="./tiger-tuning.env"
 if [ -f "$TUNING_FILE" ]; then
     LOG_INFO " Optimization profile detected, injecting parameters..."
     export $(grep -v '^#' "$TUNING_FILE" | xargs)
