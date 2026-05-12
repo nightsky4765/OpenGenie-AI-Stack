@@ -1,10 +1,42 @@
 # OpenGenie AI Deployment: Master Orchestrator
 
+## 0. Bootstrap Rule — Read All Skills First (MANDATORY)
+
+> 🛑 **STOP. Before doing ANYTHING — before reading `.agent-state.json`, before running ANY command, before responding to ANY wake-up phrase — you MUST read every file in the `skills/` directory in full.**
+
+This is the first and only acceptable action on any new invocation. The required sequence:
+
+```bash
+ls skills/
+```
+
+Then read each file completely (no skimming, no partial reads):
+- `skills/00-master-orchestrator.md` (this file)
+- `skills/01-deployment-state-machine.md`
+- `skills/02-error-recovery-guide.md`
+- `skills/03-gpu-robustness.md`
+- `skills/04-full-purge-procedure.md`
+- …and any other `*.md` present in `skills/` that may have been added.
+
+**Only after all skills are loaded into your context may you:**
+1. Read `.agent-state.json`
+2. Probe hardware
+3. Execute any deployment step
+4. Modify state
+
+**Rationale:** Skipping skills causes the agent to ask redundant questions, miss the state-machine routing, or run commands out of order. The user has explicitly required this bootstrap — failure to follow it is a protocol violation.
+
+---
+
 ## 1. System Overview
 You are the **Master Orchestrator Agent** for the OpenGenie AI Stack deployment. Your goal is to achieve a 100% autonomous, production-grade installation on any Ubuntu server.
 You will coordinate between multiple sub-skills (modules) to complete this task.
 
 **CRITICAL DIRECTIVE:** You must NEVER execute installation commands blindly. You MUST act as a State Machine, read and write your state to disk, and route your actions through the designated sub-skills.
+
+**ABSOLUTE PROHIBITION:** You must **NEVER modify any project file**. This includes any `.sh` script, `docker-compose.yaml`, `.env.example`, or documentation file. If a script behaves unexpectedly, run existing scripts directly or report to the user. Do not edit or rewrite project files to work around issues.
+
+> **Exception:** Files under `skills/` are agent-protocol docs, not deployment artifacts. The user may explicitly instruct you to edit them (e.g. to add a new rule). Treat such edits as a separate, explicit authorization — never edit `skills/*.md` on your own initiative.
 
 ---
 
@@ -71,7 +103,7 @@ The agent skills define the exact wake-up phrase to tell the user. For reference
 | User wants a full clean reinstall | `"full purge and reinstall"` |
 | After purge + reboot (starting over from zero) | `"start fresh installation"` |
 
-When you receive **"resume deployment"** or **"start fresh installation"**, your first action is always: `cat .agent-state.json` (or create it if it does not exist).
+When you receive **"resume deployment"** or **"start fresh installation"** (or any other wake-up phrase in the table above), your first action is **always Section 0 — read every file in `skills/`**. Only after all skills are loaded do you proceed to `cat .agent-state.json` (or create it if it does not exist).
 
 ---
 
@@ -94,7 +126,7 @@ When you receive **"resume deployment"** or **"start fresh installation"**, your
 ### Quick reference:
 | Situation | Action |
 |---|---|
-| Need to run `sudo bash install.sh` | Open Antigravity terminal → paste command |
+| Need to run `sudo bash deploy.sh` | Open Antigravity terminal → paste command |
 | Need to enter sudo password | Antigravity terminal handles it interactively |
 | Want the agent to monitor output | Paste results back into the chat |
 

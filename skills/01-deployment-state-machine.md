@@ -7,6 +7,19 @@ You must **never blindly execute commands**. Always act as a **State Machine**: 
 Because a reboot is required to activate GPU drivers, you will lose connection. The human user must manually reconnect you after reboot.
 **At the end of every state, you MUST print an exact instruction for the user.** They should not need to think — just follow the text.
 
+> 🚫 **ABSOLUTE PROHIBITION — Read this before doing anything:**
+> You must **NEVER modify any project file** under any circumstance. This includes:
+> - `master-deploy.sh`, `deploy.sh`, any `.sh` script
+> - `docker-compose.yaml`, `docker-compose.yml`
+> - `README.md`, `.env.example`, any documentation file
+>
+> If a script has a bug or skips a step, your only permitted actions are:
+> 1. Run scripts that already exist in the project directly
+> 2. Consult `02-error-recovery-guide.md` for workarounds
+> 3. Report the problem clearly to the user
+>
+> **Do NOT attempt to fix project files yourself.**
+
 ## 2. Correct Deployment Flow
 
 ```
@@ -109,6 +122,10 @@ Combine these results with `.agent-state.json` to identify your exact state belo
    sed -i "s|^GRAFANA_PASS=CHANGE_ME|GRAFANA_PASS=<USER_VALUE>|" .env
    sed -i "s|^OWUI_SECRET_KEY=CHANGE_ME|OWUI_SECRET_KEY=<USER_VALUE>|" .env
    sed -i "s|^LEMONADE_API_KEY=CHANGE_ME|LEMONADE_API_KEY=<USER_VALUE>|" .env
+
+   # Pin Lemonade PPA version to the only release currently published on Launchpad.
+   # .env.example ships with a stale 10.0.1~24.04 that 404s; overwrite unconditionally.
+   sed -i "s|^LEMONADE_PPA_VERSION=.*|LEMONADE_PPA_VERSION=10.4.0~24.04|" .env
    ```
 
    After writing, verify no `CHANGE_ME` values remain:
@@ -121,15 +138,37 @@ Combine these results with `.agent-state.json` to identify your exact state belo
    ```bash
    echo '{"state": "INSTALLING_SYSTEM", "gpu": "<DETECTED_GPU>", "stack": "<STACK_DIR>"}' > ../../.agent-state.tmp.json && mv ../../.agent-state.tmp.json ../../.agent-state.json
    ```
-4. Run system setup (installs NVIDIA drivers + Docker):
+4. Run system setup (installs ROCm/NVIDIA drivers + Docker):
    ```bash
    sudo ./master-deploy.sh system
    ```
-5. After the command completes successfully, update state:
+
+5. **MANDATORY: Verify the system setup actually ran — do not trust the "completed" message alone.**
+
+   Check if Docker was installed:
+   ```bash
+   command -v docker > /dev/null 2>&1 && echo "DOCKER_INSTALLED" || echo "DOCKER_MISSING"
+   ```
+
+   **If `DOCKER_MISSING`:** The system setup was silently skipped (the log showed "Skipping Compose execution"). This means `master-deploy.sh system` did not find or run the install script. Run the setup script directly:
+   ```bash
+   cd 00-system-setup-rocm-docker   # or 00-system-setup-nvidia-docker for NVIDIA
+   sudo bash deploy.sh
+   cd ..
+   ```
+   > ⚠️ Do NOT modify `master-deploy.sh`. Run `deploy.sh` directly instead.
+
+   After `deploy.sh` completes, verify Docker again:
+   ```bash
+   command -v docker > /dev/null 2>&1 && echo "DOCKER_INSTALLED" || echo "DOCKER_MISSING"
+   ```
+   If still missing, consult `02-error-recovery-guide.md` → Section 3.
+
+6. Once Docker is confirmed installed, update state:
    ```bash
    echo '{"state": "DRIVER_INSTALLED_PENDING_REBOOT", "gpu": "<DETECTED_GPU>", "stack": "<STACK_DIR>"}' > ../../.agent-state.tmp.json && mv ../../.agent-state.tmp.json ../../.agent-state.json
    ```
-6. **STOP and print this exact message to the user:**
+7. **STOP and print this exact message to the user:**
 
    ---
    ✅ **Phase 1 complete. System drivers have been installed.**

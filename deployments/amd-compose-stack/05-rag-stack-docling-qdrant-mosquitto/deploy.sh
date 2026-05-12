@@ -55,9 +55,24 @@ ensure_network() {
 
 setup_python_env() {
     LOG " Setting up Python virtual environment for MQTT monitors..."
-    if [ ! -d ".venv" ]; then
-        python3 -m venv .venv || ERROR "Failed to create python venv. Ensure python3-venv is installed."
+
+    # If .venv exists but is broken (missing activate), remove it
+    if [ -d ".venv" ] && [ ! -f ".venv/bin/activate" ]; then
+        LOG " Removing broken .venv..."
+        rm -rf .venv
     fi
+
+    # Create venv if not present
+    if [ ! -f ".venv/bin/activate" ]; then
+        # Try to create; if it fails due to missing ensurepip, install and retry
+        if ! python3 -m venv .venv 2>/dev/null; then
+            LOG " python3-venv might be missing. Installing..."
+            sudo apt-get install -y python3-venv || ERROR "Failed to install python3-venv."
+            rm -rf .venv
+            python3 -m venv .venv || ERROR "Failed to create python venv after installing python3-venv."
+        fi
+    fi
+
     source .venv/bin/activate
     pip install --upgrade pip >/dev/null
     pip install aiomqtt python-dotenv >/dev/null
